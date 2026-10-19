@@ -1,7 +1,38 @@
+# Python cache
 __pycache__/
+*.py[cod]
 *.pyc
-.env
+
+# Virtual environments
 venv/
+.venv/
 env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# VS Code
 .vscode/
+
+# AI model files
+*.safetensors
+*.pt
+*.pth
+*.onnx
+
+# Testing files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Node modules
 node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import tempfile
 from datetime import datetime
 
-from models import analyze_text, analyze_image
-from safety_score import calculate_text_score, calculate_image_score
+from backend.models import analyze_text, analyze_image
+from backend.safety_score import calculate_text_score, calculate_image_score
 from backend.transparency import generate_explanation
 from backend.impersonation import check_impersonation
 from backend.behavior import track_username_change, track_login, check_account_growth
