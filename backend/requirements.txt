@@ -8,3 +8,5 @@ pillow
 numpy
 scikit-learn
 sentence-transformers
+pymongo
+python-dotenv
