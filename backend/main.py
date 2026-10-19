@@ -1,7 +1,9 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
+from collections.abc import MutableMapping
+from backend.database import user_scores_collection, admin_alerts_collection, analysis_collection
 
 from backend.models import analyze_text, analyze_image
 from backend.safety_score import calculate_text_score, calculate_image_score
@@ -12,8 +14,46 @@ from backend.account_database import get_account
 
 app = FastAPI(title="Suraksha-Astra API")
 
-user_scores = {}
-admin_alerts = []
+class MongoUserScores(MutableMapping):
+    """Mongo-backed scores, preserving existing endpoint syntax."""
+    def __getitem__(self, key):
+        record = user_scores_collection.find_one({"user_id": key})
+        if record is None:
+            raise KeyError(key)
+        return record["score"]
+
+    def __setitem__(self, key, value):
+        user_scores_collection.update_one(
+            {"user_id": key},
+            {"$set": {"score": value, "updated_at": datetime.now(timezone.utc)}},
+            upsert=True,
+        )
+
+    def __delitem__(self, key):
+        result = user_scores_collection.delete_one({"user_id": key})
+        if not result.deleted_count:
+            raise KeyError(key)
+
+    def __iter__(self):
+        return (record["user_id"] for record in user_scores_collection.find({}, {"user_id": 1}))
+
+    def __len__(self):
+        return user_scores_collection.count_documents({})
+
+    def __contains__(self, key):
+        return user_scores_collection.find_one({"user_id": key}, {"_id": 1}) is not None
+
+
+user_scores = MongoUserScores()
+
+
+def save_analysis(payload):
+    """Store a copy of the API response without exposing MongoDB's ObjectId."""
+    analysis_collection.insert_one({
+        "created_at": datetime.now(timezone.utc),
+        "result": payload,
+    })
+    return payload
 
 
 app.add_middleware(
@@ -58,7 +98,7 @@ def create_admin_alert(username, risk_score, action, reasons):
         return
 
     alert = {
-        "alert_id": len(admin_alerts) + 1,
+        "alert_id": None,
         "username": username,
         "risk_score": risk_score,
         "action": action,
@@ -67,7 +107,8 @@ def create_admin_alert(username, risk_score, action, reasons):
         "message": "Suspicious account detected. Review recommended."
     }
 
-    admin_alerts.append(alert)
+    inserted = admin_alerts_collection.insert_one(alert)
+    admin_alerts_collection.update_one({"_id": inserted.inserted_id}, {"$set": {"alert_id": str(inserted.inserted_id)}})
 
 
 def scam_keyword_boost(text: str):
@@ -164,14 +205,14 @@ def check_text(text: str, user_id: str = "default_user"):
         reasons=reasons
     )
 
-    return {
+    return save_analysis({
         "user_id": user_id,
         "content_type": "text",
         "decision": decision,
         "analysis": result,
         "safety": safety,
         "final_decision": final_decision
-    }
+    })
 
 
 @app.post("/check-image")
@@ -216,14 +257,14 @@ async def check_image(file: UploadFile = File(...), user_id: str = "default_user
         reasons=reasons
     )
 
-    return {
+    return save_analysis({
         "user_id": user_id,
         "content_type": "image",
         "decision": decision,
         "analysis": result,
         "safety": safety,
         "final_decision": final_decision
-    }
+    })
 
 
 @app.post("/check-impersonation")
@@ -240,7 +281,7 @@ def check_profile_impersonation(
         suspicious_bio
     )
 
-    return result
+    return save_analysis({"event": "impersonation_check", "result": result})["result"]
 
 
 @app.post("/track-username")
@@ -269,14 +310,14 @@ def track_username(user_id: str, new_username: str):
         reasons=result["reasons"]
     )
 
-    return {
+    return save_analysis({
         "user_id": user_id,
         "event": "username_change",
         "decision": result["status"],
         "behavior_result": result,
         "safety": safety,
         "final_decision": final_decision
-    }
+    })
 
 
 @app.post("/track-login")
@@ -305,14 +346,14 @@ def track_user_login(user_id: str, device_id: str, location: str):
         reasons=result["reasons"]
     )
 
-    return {
+    return save_analysis({
         "user_id": user_id,
         "event": "login_activity",
         "decision": result["status"],
         "behavior_result": result,
         "safety": safety,
         "final_decision": final_decision
-    }
+    })
 
 
 @app.post("/check-growth")
@@ -353,14 +394,14 @@ def check_growth(
         reasons=result["reasons"]
     )
 
-    return {
+    return save_analysis({
         "user_id": user_id,
         "event": "account_growth_analysis",
         "decision": result["status"],
         "growth_result": result,
         "safety": safety,
         "final_decision": final_decision
-    }
+    })
 
 
 @app.get("/account-report/{username}")
@@ -425,7 +466,7 @@ def account_report(username: str):
         reasons=reasons
     )
 
-    return {
+    return save_analysis({
         "found": True,
         "username": username,
         "account_details": account,
@@ -452,20 +493,20 @@ def account_report(username: str):
             "reasons": reasons
         },
         "final_decision": final_decision
-    }
+    })
 
 
 @app.get("/admin-alerts")
 def get_admin_alerts():
-    return {
-        "total_alerts": len(admin_alerts),
-        "alerts": admin_alerts
-    }
+    alerts = list(admin_alerts_collection.find().sort("_id", -1))
+    for alert in alerts:
+        alert["_id"] = str(alert["_id"])
+    return {"total_alerts": len(alerts), "alerts": alerts}
 
 
 @app.post("/clear-admin-alerts")
 def clear_admin_alerts():
-    admin_alerts.clear()
+    admin_alerts_collection.delete_many({})
 
     return {
         "message": "Admin alerts cleared successfully"
