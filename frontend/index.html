@@ -1,119 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suraksha-Astra</title>
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(16,185,129,.12), transparent 34%),
+        radial-gradient(ellipse at 90% 12%, rgba(59,130,246,.12), transparent 32%),
+        #020617;
+      letter-spacing: .005em;
+    }
+    #loginPage > div {
+      max-width: 430px;
+      padding: 2.25rem;
+      border-color: rgba(148,163,184,.28);
+      box-shadow: 0 24px 70px rgba(0,0,0,.38);
+      backdrop-filter: blur(12px);
+    }
+    #loginPage h1 { letter-spacing: -.04em; }
+    section, #autoAccountReport {
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    #dashboardPage header h1 { letter-spacing: -.035em; }
+    input:not([type="file"]), textarea {
+      transition: border-color .18s ease, box-shadow .18s ease;
+      outline: none;
+    }
+    input:not([type="file"]):focus, textarea:focus {
+      border-color: #34d399;
+      box-shadow: 0 0 0 3px rgba(52,211,153,.14);
+    }
+    button {
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    }
+    button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    #scoreBar { transition: width .35s ease, background-color .25s ease; }
+    #autoAccountReport article {
+      transition: border-color .18s ease, transform .18s ease;
+    }
+    #autoAccountReport article:hover {
+      border-color: rgba(52,211,153,.55);
+      transform: translateY(-1px);
+    }
+    #preview {
+      max-width: 100%;
+      object-fit: contain;
+      border: 1px solid rgba(148,163,184,.25);
+    }
+    @media (max-width: 640px) {
+      #dashboardPage { padding: 1rem; }
+      #loginPage > div { padding: 1.5rem; }
+      #dashboardPage header h1 { font-size: 2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+
+</head>
 <body class="bg-slate-950 text-white min-h-screen">
 
-<div id="loginPage" class="min-h-screen flex items-center justify-center">
-  <div class="bg-slate-900 p-8 rounded-2xl w-96 text-center border border-slate-700">
-    <h1 class="text-4xl font-bold text-green-400 mb-2">Suraksha-Astra</h1>
-
-    <p class="text-slate-300 mb-6">
-      Login using username to view full account risk report
-    </p>
-
-    <input id="loginUserId"
-      class="w-full px-4 py-3 rounded bg-slate-800 border border-slate-600 mb-4"
-      placeholder="Enter username e.g. tharun_gk">
-
-    <button onclick="loginUser()"
-      class="w-full bg-green-500 hover:bg-green-600 py-3 rounded font-bold">
-      Login
-    </button>
-
-    <p class="text-xs text-slate-400 mt-4">
-      Try: tharun_gk, saqib_07, cid_karnataka, dark_user99
-    </p>
-  </div>
-</div>
-
-
-<div id="dashboardPage" class="hidden max-w-6xl mx-auto p-6">
-
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-4xl font-bold text-green-400">Suraksha-Astra</h1>
-      <p class="text-slate-300">
-        AI-Based Instagram Fake Account Detection, Pre-Upload Moderation & Safety Scoring
-      </p>
+  <div id="loginPage" class="min-h-screen flex items-center justify-center px-4">
+    <div class="bg-slate-900 p-8 rounded-2xl w-full max-w-sm text-center border border-slate-700">
+      <h1 class="text-4xl font-bold text-green-400 mb-2">Suraksha-Astra</h1>
+      <p class="text-slate-300 mb-6">Login using a username to scan content and view its saved account report.</p>
+      <input id="loginUserId" class="w-full px-4 py-3 rounded bg-slate-800 border border-slate-600 mb-4"
+        placeholder="Enter username" autocomplete="username">
+      <button onclick="loginUser()" class="w-full bg-green-500 hover:bg-green-600 py-3 rounded font-bold">Login</button>
+      <p class="text-xs text-slate-500 mt-4">Try: Tharun__gk,Prajwal_S,Sakhib_12</p>
+      <p id="loginError" class="text-red-400 text-sm mt-3"></p>
     </div>
-
-    <button onclick="logoutUser()"
-      class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded font-bold">
-      Logout
-    </button>
   </div>
 
-  <div class="bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6">
-    <p class="text-slate-400">Logged in as:</p>
-    <h2 id="loggedUser" class="text-2xl font-bold mb-3"></h2>
+  <main id="dashboardPage" class="hidden max-w-6xl mx-auto p-6">
+    <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+      <div>
+        <h1 class="text-4xl font-bold text-green-400">Suraksha-Astra</h1>
+        <p class="text-slate-300 mt-1">AI-Based Instagram Fake Account Detection, Pre-Upload Moderation &amp; Safety Scoring</p>
+      </div>
+      <button onclick="logoutUser()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded font-bold">Logout</button>
+    </header>
 
-    <p><b>Current Safety Score:</b> <span id="currentScore">100</span>/100</p>
-    <p><b>Account Status:</b> <span id="currentStatus">SAFE</span></p>
+    <section class="bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6">
+      <p class="text-slate-400">Logged in as:</p>
+      <h2 id="loggedUser" class="text-2xl font-bold mb-3"></h2>
+      <p><b>Your Current Safety Score:</b> <span id="currentScore">100</span>/100</p>
+      <p><b>Account Status:</b> <span id="currentStatus">SAFE</span></p>
+      <div class="w-full bg-slate-700 h-4 rounded my-3">
+        <div id="scoreBar" class="bg-green-500 h-4 rounded" style="width:100%"></div>
+      </div>
+      <p id="scoreMeaning" class="text-slate-300">Safe account behavior.</p>
+    </section>
 
-    <div class="w-full bg-slate-700 h-4 rounded my-3">
-      <div id="scoreBar" class="bg-green-500 h-4 rounded" style="width:100%"></div>
+    <section class="bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6">
+      <h2 class="text-xl font-bold mb-2">Search Account Report &amp; Activity History</h2>
+      <p class="text-slate-300 text-sm mb-4">Search an account from the demo database to see its risk report and saved scan activity. Scan activity is stored against the logged-in username.</p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input id="accountSearchInput" class="flex-1 px-4 py-3 rounded bg-slate-800 border border-slate-600"
+          placeholder="Enter account username e.g. cid_karnataka">
+        <button onclick="searchAccount()" class="bg-blue-500 hover:bg-blue-600 px-5 py-3 rounded font-bold">Search Account</button>
+      </div>
+      <p id="searchMessage" class="text-sm text-slate-400 mt-2"></p>
+    </section>
+
+    <section id="autoAccountReport" class="bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6">
+      <h2 class="text-xl font-bold mb-3">Account Risk Report</h2>
+      <p class="text-slate-300">Loading account report...</p>
+    </section>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-700">
+        <h2 class="text-xl font-bold mb-4">Text Upload Scan</h2>
+        <textarea id="textInput" class="w-full h-40 p-3 rounded bg-slate-800 border border-slate-700"
+          placeholder="Enter text before upload..."></textarea>
+        <button onclick="checkText()" class="mt-4 bg-green-500 hover:bg-green-600 px-4 py-2 rounded font-bold">Scan Text</button>
+        <div id="textResult" class="mt-5"></div>
+      </section>
+
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-700">
+        <h2 class="text-xl font-bold mb-4">Image Upload Scan</h2>
+        <input type="file" id="imageInput" accept="image/*" class="mb-3 block w-full text-sm">
+        <img id="preview" alt="Selected image preview" class="hidden rounded mb-3 max-h-60">
+        <button onclick="checkImage()" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded font-bold">Scan Image</button>
+        <div id="imageResult" class="mt-5"></div>
+      </section>
     </div>
-
-    <p id="scoreMeaning" class="text-slate-300">
-      Safe account behavior.
-    </p>
-  </div>
-
-  <div id="autoAccountReport" class="bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6">
-    <h2 class="text-xl font-bold mb-3">Automatic Account Risk Report</h2>
-    <p class="text-slate-300">Loading account report...</p>
-  </div>
-
-  <div class="grid md:grid-cols-2 gap-6">
-
-    <div class="bg-slate-900 p-6 rounded-2xl">
-      <h2 class="text-xl font-bold mb-4">Text Upload Scan</h2>
-
-      <textarea id="textInput"
-        class="w-full h-40 p-3 rounded bg-slate-800 border border-slate-700"
-        placeholder="Enter text before upload..."></textarea>
-
-      <button onclick="checkText()"
-        class="mt-4 bg-green-500 hover:bg-green-600 px-4 py-2 rounded font-bold">
-        Scan Text
-      </button>
-
-      <div id="textResult" class="mt-5"></div>
-    </div>
-
-    <div class="bg-slate-900 p-6 rounded-2xl">
-      <h2 class="text-xl font-bold mb-4">Image Upload Scan</h2>
-
-      <input type="file" id="imageInput" class="mb-3">
-
-      <img id="preview" class="hidden rounded mb-3 max-h-60">
-
-      <button onclick="checkImage()"
-        class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded font-bold">
-        Scan Image
-      </button>
-
-      <div id="imageResult" class="mt-5"></div>
-    </div>
-
-  </div>
-
-</div>
-
+  </main>
 
 <script>
 const API = "http://127.0.0.1:8000";
 let loggedInUser = null;
+let searchedAccount = null;
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
 
 function getScoreDetails(score) {
+  score = Number(score ?? 100);
   let barColor = "bg-green-500";
   let meaning = "Safe account behavior.";
   let status = "SAFE";
-
   if (score < 30) {
     barColor = "bg-red-500";
     meaning = "High-risk account. Strong action required.";
@@ -127,308 +164,271 @@ function getScoreDetails(score) {
     meaning = "Some risk detected. Account needs monitoring.";
     status = "MONITOR";
   }
-
   return { barColor, meaning, status };
+}
+
+async function readResponse(res) {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || data.message || `Request failed (${res.status})`);
+  return data;
 }
 
 async function loginUser() {
   const userId = document.getElementById("loginUserId").value.trim();
-
+  const errorBox = document.getElementById("loginError");
+  errorBox.textContent = "";
   if (!userId) {
-    alert("Enter username");
+    errorBox.textContent = "Enter a username.";
     return;
   }
-
   loggedInUser = userId;
-
+  searchedAccount = userId;
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("dashboardPage").classList.remove("hidden");
-  document.getElementById("loggedUser").innerText = userId;
-
+  document.getElementById("loggedUser").textContent = userId;
+  document.getElementById("accountSearchInput").value = userId;
   await loadUserScore();
-  await loadAccountReport();
+  await loadAccountReport(userId);
 }
 
 function logoutUser() {
   loggedInUser = null;
+  searchedAccount = null;
   location.reload();
 }
 
 async function loadUserScore() {
-  const res = await fetch(`${API}/user-score/${encodeURIComponent(loggedInUser)}`);
-  const data = await res.json();
-
-  const score = data.safety.score;
-  const details = getScoreDetails(score);
-
-  document.getElementById("currentScore").innerText = score;
-  document.getElementById("currentStatus").innerText = details.status;
-  document.getElementById("scoreMeaning").innerText = details.meaning;
-
-  const bar = document.getElementById("scoreBar");
-  bar.className = `${details.barColor} h-4 rounded`;
-  bar.style.width = `${score}%`;
+  if (!loggedInUser) return;
+  try {
+    const res = await fetch(`${API}/user-score/${encodeURIComponent(loggedInUser)}`);
+    const data = await readResponse(res);
+    const score = Number(data?.safety?.score ?? 100);
+    const details = getScoreDetails(score);
+    document.getElementById("currentScore").textContent = score;
+    document.getElementById("currentStatus").textContent = details.status;
+    document.getElementById("scoreMeaning").textContent = details.meaning;
+    const bar = document.getElementById("scoreBar");
+    bar.className = `${details.barColor} h-4 rounded`;
+    bar.style.width = `${Math.max(0, Math.min(100, score))}%`;
+  } catch (error) {
+    document.getElementById("scoreMeaning").textContent = "Could not load safety score. Check that the backend is running.";
+  }
 }
 
-async function loadAccountReport() {
+async function searchAccount() {
+  const username = document.getElementById("accountSearchInput").value.trim();
+  if (!username) {
+    document.getElementById("searchMessage").textContent = "Enter a username to search.";
+    return;
+  }
+  document.getElementById("searchMessage").textContent = `Searching for ${username}...`;
+  await loadAccountReport(username);
+}
+
+function formatDate(value) {
+  if (!value) return "Date unavailable";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? escapeHTML(value) : date.toLocaleString();
+}
+
+async function loadAccountReport(username = loggedInUser) {
   const box = document.getElementById("autoAccountReport");
-
-  box.innerHTML = `
-    <h2 class="text-xl font-bold mb-3">Automatic Account Risk Report</h2>
-    <p class="text-slate-300">Loading account report...</p>
-  `;
-
+  searchedAccount = username;
+  box.className = "bg-slate-900 p-5 rounded-2xl border border-slate-700 mb-6";
+  box.innerHTML = `<h2 class="text-xl font-bold mb-3">Account Risk Report: ${escapeHTML(username)}</h2><p class="text-slate-300">Loading account report...</p>`;
   try {
-    const res = await fetch(`${API}/account-report/${encodeURIComponent(loggedInUser)}`);
-    const data = await res.json();
+    const res = await fetch(`${API}/account-report/${encodeURIComponent(username)}`);
+    const data = await readResponse(res);
 
     if (!data.found) {
       box.className = "bg-slate-900 p-5 rounded-2xl border border-yellow-500 mb-6";
       box.innerHTML = `
-        <h2 class="text-xl font-bold mb-3">Automatic Account Risk Report</h2>
-        <p class="text-yellow-400">This username is not found in demo database.</p>
-        <p class="text-slate-300 mt-2">Try: tharun_gk, saqib_07, cid_karnataka, dark_user99</p>
-      `;
+        <h2 class="text-xl font-bold mb-3">Account Not Found</h2>
+        <p class="text-yellow-400">${escapeHTML(data.message || "This username is not in the demo database.")}</p>
+        <p class="text-slate-300 mt-2">Try: tharun_gk, saqib_07, cid_karnataka, dark_user99</p>`;
+      document.getElementById("searchMessage").textContent = `No account named "${username}" was found.`;
       return;
     }
 
-    const status = data.final_result.status;
-
-    const border = status === "HIGH RISK"
-      ? "border-red-500 bg-red-950/30"
-      : status === "SUSPICIOUS"
-      ? "border-yellow-500 bg-yellow-950/30"
+    document.getElementById("searchMessage").textContent = `Showing report and saved activities for ${username}.`;
+    const result = data.final_result || {};
+    const status = result.status || "UNKNOWN";
+    const border = status === "HIGH RISK" ? "border-red-500 bg-red-950/30"
+      : status === "SUSPICIOUS" ? "border-yellow-500 bg-yellow-950/30"
       : "border-green-500 bg-green-950/30";
+    const color = status === "HIGH RISK" ? "text-red-400"
+      : status === "SUSPICIOUS" ? "text-yellow-400" : "text-green-400";
+    const action = result.action || data.final_decision?.final_action || "REVIEW";
+    const actionColor = action === "BLOCK" ? "text-red-400" : action === "LIMIT" ? "text-yellow-400" : "text-green-400";
+    const reasons = (result.reasons || []).map(r => `<li>${escapeHTML(r)}</li>`).join("") || "<li>No reasons returned.</li>";
+    const account = data.account_details || {};
+    const growth = data.growth_analysis || {};
+    const login = data.login_analysis || {};
+    const usernameAnalysis = data.username_analysis || {};
+    const history = Array.isArray(data.activity_history) ? data.activity_history : [];
 
-    const color = status === "HIGH RISK"
-      ? "text-red-400"
-      : status === "SUSPICIOUS"
-      ? "text-yellow-400"
-      : "text-green-400";
-
-    const actionColor = data.final_result.action === "BLOCK"
-      ? "text-red-400"
-      : data.final_result.action === "LIMIT"
-      ? "text-yellow-400"
-      : "text-green-400";
-
-    const reasons = data.final_result.reasons
-      .map(r => `<li>${r}</li>`)
-      .join("");
+    const activityHTML = history.length ? history.map(item => {
+      const score = item.safety_score === null || item.safety_score === undefined ? "N/A" : `${escapeHTML(item.safety_score)}/100`;
+      return `
+        <article class="rounded-xl bg-slate-800 p-4 border border-slate-700">
+          <div class="flex flex-col sm:flex-row sm:justify-between gap-1">
+            <b class="text-green-300">${escapeHTML(item.event || "Activity")}</b>
+            <span class="text-xs text-slate-400">${formatDate(item.created_at)}</span>
+          </div>
+          <p class="mt-2"><b>Decision:</b> ${escapeHTML(item.decision || "ANALYZED")}</p>
+          <p><b>Safety score:</b> ${score}</p>
+          ${item.final_action ? `<p><b>Final action:</b> ${escapeHTML(item.final_action)}</p>` : ""}
+        </article>`;
+    }).join("") : `<p class="text-slate-400">No saved scan activity was found for this username yet. Scan text or an image while logged in as this username, then search again.</p>`;
 
     box.className = `p-5 rounded-2xl border mb-6 ${border}`;
-
     box.innerHTML = `
-      <h2 class="text-xl font-bold mb-3">Automatic Account Risk Report</h2>
-
-      <h3 class="text-2xl font-bold ${color}">
-        ${status}
-      </h3>
-
-      <p class="mt-2"><b>Username:</b> ${data.username}</p>
-      <p><b>Total Risk Score:</b> ${data.final_result.total_risk}</p>
-
+      <h2 class="text-xl font-bold mb-3">Account Risk Report</h2>
+      <h3 class="text-2xl font-bold ${color}">${escapeHTML(status)}</h3>
+      <p class="mt-2"><b>Username:</b> ${escapeHTML(data.username || username)}</p>
+      <p><b>Total Risk Score:</b> ${escapeHTML(result.total_risk ?? "N/A")}</p>
       <div class="mt-4 p-4 rounded-xl bg-slate-900/80 border border-slate-600">
-        <h3 class="text-xl font-bold ${actionColor}">
-          FINAL ACTION: ${data.final_result.action}
-        </h3>
-        <p class="text-slate-300 mt-1">
-          ${data.final_result.meaning}
-        </p>
+        <h3 class="text-xl font-bold ${actionColor}">FINAL ACTION: ${escapeHTML(action)}</h3>
+        <p class="text-slate-300 mt-1">${escapeHTML(result.meaning || data.final_decision?.meaning || "")}</p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-4 mt-4">
-
         <div class="bg-slate-900/70 p-4 rounded-xl">
           <h4 class="font-bold mb-2">Growth Analysis</h4>
-          <p>Age: ${data.account_details.account_age_minutes} minutes</p>
-          <p>Followers: ${data.account_details.followers_count}</p>
-          <p>Following: ${data.account_details.following_count}</p>
-          <p>Posts: ${data.account_details.posts_count}</p>
-          <p><b>Growth Risk:</b> ${data.growth_analysis.risk}</p>
+          <p>Age: ${escapeHTML(account.account_age_minutes ?? "N/A")} minutes</p>
+          <p>Followers: ${escapeHTML(account.followers_count ?? "N/A")}</p>
+          <p>Following: ${escapeHTML(account.following_count ?? "N/A")}</p>
+          <p>Posts: ${escapeHTML(account.posts_count ?? "N/A")}</p>
+          <p><b>Growth Risk:</b> ${escapeHTML(growth.risk ?? "N/A")}</p>
         </div>
-
         <div class="bg-slate-900/70 p-4 rounded-xl">
           <h4 class="font-bold mb-2">Login Analysis</h4>
-          <p>Devices Logged In: ${data.login_analysis.devices_count}</p>
-          <p>Locations Logged In: ${data.login_analysis.locations_count}</p>
-          <p class="text-sm">Devices: ${data.login_analysis.devices.join(", ")}</p>
-          <p class="text-sm">Locations: ${data.login_analysis.locations.join(", ")}</p>
-          <p><b>Login Risk:</b> ${data.login_analysis.risk}</p>
+          <p>Devices Logged In: ${escapeHTML(login.devices_count ?? "N/A")}</p>
+          <p>Locations Logged In: ${escapeHTML(login.locations_count ?? "N/A")}</p>
+          <p class="text-sm break-words">Devices: ${escapeHTML((login.devices || []).join(", ") || "N/A")}</p>
+          <p class="text-sm break-words">Locations: ${escapeHTML((login.locations || []).join(", ") || "N/A")}</p>
+          <p><b>Login Risk:</b> ${escapeHTML(login.risk ?? "N/A")}</p>
         </div>
-
         <div class="bg-slate-900/70 p-4 rounded-xl">
           <h4 class="font-bold mb-2">Username History</h4>
-          <p>Username Changes: ${data.username_analysis.username_change_count}</p>
-          <p class="text-sm">History: ${data.username_analysis.username_history.join(" → ")}</p>
-          <p><b>Username Risk:</b> ${data.username_analysis.risk}</p>
+          <p>Username Changes: ${escapeHTML(usernameAnalysis.username_change_count ?? "N/A")}</p>
+          <p class="text-sm break-words">History: ${escapeHTML((usernameAnalysis.username_history || []).join(" → ") || "N/A")}</p>
+          <p><b>Username Risk:</b> ${escapeHTML(usernameAnalysis.risk ?? "N/A")}</p>
         </div>
-
       </div>
 
-      <h4 class="font-bold mt-4">Why this account is classified like this?</h4>
-      <ul class="list-disc ml-5 text-slate-300">
-        ${reasons}
-      </ul>
-    `;
+      <h4 class="font-bold mt-5">Why this account is classified like this?</h4>
+      <ul class="list-disc ml-5 text-slate-300">${reasons}</ul>
 
+      <div class="mt-6">
+        <h3 class="text-xl font-bold mb-3">Saved Activity History (${history.length})</h3>
+        <div class="space-y-3">${activityHTML}</div>
+      </div>`;
   } catch (error) {
-    box.innerHTML = `
-      <h2 class="text-xl font-bold mb-3">Automatic Account Risk Report</h2>
-      <p class="text-red-400">Backend not responding. Run uvicorn first.</p>
-    `;
+    box.className = "bg-slate-900 p-5 rounded-2xl border border-red-500 mb-6";
+    box.innerHTML = `<h2 class="text-xl font-bold mb-3">Account Report Error</h2><p class="text-red-400">${escapeHTML(error.message || "Backend not responding. Run uvicorn first.")}</p>`;
+    document.getElementById("searchMessage").textContent = "Could not load this account report.";
   }
 }
 
-document.getElementById("imageInput").addEventListener("change", e => {
-  const file = e.target.files[0];
+document.getElementById("imageInput").addEventListener("change", event => {
+  const file = event.target.files[0];
   const preview = document.getElementById("preview");
-
   if (file) {
     preview.src = URL.createObjectURL(file);
     preview.classList.remove("hidden");
+  } else {
+    preview.classList.add("hidden");
+    preview.removeAttribute("src");
   }
 });
 
 function resultCard(data) {
-  const safety = data.safety;
-  const analysis = data.analysis;
-
-  const isBlocked = data.decision === "BLOCKED";
-  const isSuspicious = data.decision === "SUSPICIOUS";
-
+  const safety = data.safety || {};
+  const analysis = data.analysis || {};
+  const decision = String(data.decision || "").toUpperCase();
+  const isBlocked = decision === "BLOCKED" || decision === "BLOCK";
+  const isSuspicious = decision === "SUSPICIOUS";
   const details = getScoreDetails(safety.score);
-
-  const reasons = safety.reasons.length
-    ? safety.reasons.map(r => `<li>${r}</li>`).join("")
-    : "<li>No harmful reason detected</li>";
-
+  const reasons = (safety.reasons || []).length
+    ? safety.reasons.map(r => `<li>${escapeHTML(r)}</li>`).join("")
+    : "<li>No harmful reason detected.</li>";
   const analysisHTML = Object.entries(analysis)
-    .map(([k, v]) => `<p><b>${k}:</b> ${v}</p>`)
+    .map(([key, value]) => `<p><b>${escapeHTML(key)}:</b> ${escapeHTML(typeof value === "object" ? JSON.stringify(value) : value)}</p>`)
     .join("");
-
-  let action = "Upload allowed. Account remains under normal monitoring.";
-
-  if (isBlocked) {
-    action = "Upload blocked. User safety score updated.";
-  } else if (isSuspicious) {
-    action = "Upload needs manual review before posting.";
-  }
-
-  const cardStyle = isBlocked
-    ? "border-red-500 bg-red-950/30"
-    : isSuspicious
-    ? "border-yellow-500 bg-yellow-950/30"
-    : "border-green-500 bg-green-950/30";
-
-  const titleStyle = isBlocked
-    ? "text-red-400"
-    : isSuspicious
-    ? "text-yellow-400"
-    : "text-green-400";
-
-  const titleText = isBlocked
-    ? "BLOCKED"
-    : isSuspicious
-    ? "SUSPICIOUS"
-    : "ALLOWED";
-
+  const actionText = isBlocked ? "Upload blocked. User safety score updated."
+    : isSuspicious ? "Upload needs manual review before posting."
+    : "Upload allowed. Account remains under normal monitoring.";
+  const cardStyle = isBlocked ? "border-red-500 bg-red-950/30"
+    : isSuspicious ? "border-yellow-500 bg-yellow-950/30" : "border-green-500 bg-green-950/30";
+  const titleStyle = isBlocked ? "text-red-400" : isSuspicious ? "text-yellow-400" : "text-green-400";
+  const titleText = isBlocked ? "BLOCKED" : isSuspicious ? "SUSPICIOUS" : "ALLOWED";
   return `
     <div class="p-4 rounded-xl border ${cardStyle}">
-      <p class="text-sm text-slate-400 mb-2">User: ${data.user_id}</p>
-
-      <h3 class="text-2xl font-bold ${titleStyle}">
-        ${titleText}
-      </h3>
-
-      <p class="mt-3"><b>Updated Safety Score:</b> ${safety.score}/100</p>
+      <p class="text-sm text-slate-400 mb-2">User: ${escapeHTML(data.user_id || loggedInUser)}</p>
+      <h3 class="text-2xl font-bold ${titleStyle}">${titleText}</h3>
+      <p class="mt-3"><b>Updated Safety Score:</b> ${escapeHTML(safety.score ?? "N/A")}/100</p>
       <p><b>Account Status:</b> ${details.status}</p>
-
       <div class="w-full bg-slate-700 h-4 rounded my-3">
-        <div class="${details.barColor} h-4 rounded" style="width:${safety.score}%"></div>
+        <div class="${details.barColor} h-4 rounded" style="width:${Math.max(0, Math.min(100, Number(safety.score ?? 100)))}%"></div>
       </div>
-
       <p><b>Meaning:</b> ${details.meaning}</p>
-      <p><b>Recommended Action:</b> ${action}</p>
-
+      <p><b>Recommended Action:</b> ${actionText}</p>
       ${data.final_decision ? `
         <div class="mt-4 p-4 rounded-xl bg-slate-900/80 border border-slate-600">
-          <h3 class="text-xl font-bold ${
-            data.final_decision.final_action === "BLOCK" ? "text-red-400" :
-            data.final_decision.final_action === "LIMIT" ? "text-yellow-400" :
-            "text-green-400"
-          }">
-            FINAL ACTION: ${data.final_decision.final_action}
-          </h3>
-          <p class="text-slate-300 mt-1">
-            ${data.final_decision.meaning}
-          </p>
-        </div>
-      ` : ""}
-
+          <h3 class="text-xl font-bold">FINAL ACTION: ${escapeHTML(data.final_decision.final_action || "REVIEW")}</h3>
+          <p class="text-slate-300 mt-1">${escapeHTML(data.final_decision.meaning || "")}</p>
+        </div>` : ""}
       <h4 class="mt-4 font-bold">Why this score changed?</h4>
       <ul class="list-disc ml-5 text-slate-300">${reasons}</ul>
-
       <h4 class="mt-4 font-bold">Model Analysis</h4>
-      <div class="text-sm text-slate-300">${analysisHTML}</div>
-    </div>
-  `;
+      <div class="text-sm text-slate-300 break-words">${analysisHTML || "<p>No additional model details.</p>"}</div>
+    </div>`;
 }
 
 async function checkText() {
   const text = document.getElementById("textInput").value;
-
-  if (!text.trim()) {
-    alert("Enter text first");
-    return;
-  }
-
-  document.getElementById("textResult").innerHTML = `<p>Scanning text...</p>`;
-
+  if (!loggedInUser) return alert("Please log in first.");
+  if (!text.trim()) return alert("Enter text first.");
+  document.getElementById("textResult").innerHTML = `<p class="text-slate-300">Scanning text...</p>`;
   try {
-    const res = await fetch(`${API}/check-text?text=${encodeURIComponent(text)}&user_id=${encodeURIComponent(loggedInUser)}`, {
-      method: "POST"
-    });
-
-    const data = await res.json();
+    const res = await fetch(`${API}/check-text?text=${encodeURIComponent(text)}&user_id=${encodeURIComponent(loggedInUser)}`, { method: "POST" });
+    const data = await readResponse(res);
     document.getElementById("textResult").innerHTML = resultCard(data);
     await loadUserScore();
-
+    if (searchedAccount === loggedInUser) await loadAccountReport(loggedInUser);
   } catch (error) {
-    document.getElementById("textResult").innerHTML =
-      `<p class="text-red-400">Error: Backend not responding.</p>`;
+    document.getElementById("textResult").innerHTML = `<p class="text-red-400">Scan failed: ${escapeHTML(error.message || "Backend not responding.")}</p>`;
   }
 }
 
 async function checkImage() {
   const file = document.getElementById("imageInput").files[0];
-
-  if (!file) {
-    alert("Select image first");
-    return;
-  }
-
+  if (!loggedInUser) return alert("Please log in first.");
+  if (!file) return alert("Select an image first.");
   const formData = new FormData();
   formData.append("file", file);
-
-  document.getElementById("imageResult").innerHTML = `<p>Scanning image...</p>`;
-
+  document.getElementById("imageResult").innerHTML = `<p class="text-slate-300">Scanning image...</p>`;
   try {
     const res = await fetch(`${API}/check-image?user_id=${encodeURIComponent(loggedInUser)}`, {
       method: "POST",
       body: formData
     });
-
-    const data = await res.json();
+    const data = await readResponse(res);
     document.getElementById("imageResult").innerHTML = resultCard(data);
     await loadUserScore();
-
+    if (searchedAccount === loggedInUser) await loadAccountReport(loggedInUser);
   } catch (error) {
-    document.getElementById("imageResult").innerHTML =
-      `<p class="text-red-400">Error: Backend not responding.</p>`;
+    document.getElementById("imageResult").innerHTML = `<p class="text-red-400">Scan failed: ${escapeHTML(error.message || "Backend not responding.")}</p>`;
   }
 }
-</script>
 
+document.getElementById("loginUserId").addEventListener("keydown", event => {
+  if (event.key === "Enter") loginUser();
+});
+document.getElementById("accountSearchInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") searchAccount();
+});
+</script>
 </body>
 </html>
